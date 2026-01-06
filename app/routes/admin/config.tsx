@@ -1,4 +1,5 @@
-import { Form } from 'react-router';
+import { useEffect } from 'react';
+import { Form, useNavigation, useFetcher, useActionData } from 'react-router';
 import type { Route } from './+types/config';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -9,6 +10,8 @@ import { Input } from '~/components/ui/input';
 import { Label } from '~/components/ui/label';
 import { Textarea } from '~/components/ui/textarea';
 import { Button } from '~/components/ui/button';
+import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 export async function loader({ request }: Route.LoaderArgs) {
   await requireAuth(request);
@@ -68,7 +71,7 @@ export async function action({ request }: Route.ActionArgs) {
     });
   }
 
-  return { success: true };
+  return { success: true, message: 'Konfigurasi berhasil disimpan' };
   }
 
   if (intent === 'createHeroSlide') {
@@ -105,9 +108,10 @@ export async function action({ request }: Route.ActionArgs) {
           order,
         },
       });
+      return { success: true, message: 'Slide berhasil ditambahkan' };
     }
 
-    return { success: true };
+    return { success: false, error: 'Gambar tidak valid' };
   }
 
   if (intent === 'updateHeroSlideOrder') {
@@ -120,9 +124,10 @@ export async function action({ request }: Route.ActionArgs) {
         where: { id },
         data: { order },
       });
+      return { success: true, message: 'Urutan slide berhasil diperbarui' };
     }
 
-    return { success: true };
+    return { success: false, error: 'Slide tidak ditemukan' };
   }
 
   if (intent === 'deleteHeroSlide') {
@@ -132,9 +137,10 @@ export async function action({ request }: Route.ActionArgs) {
       await db.heroSlide.delete({
         where: { id },
       });
+      return { success: true, message: 'Slide berhasil dihapus' };
     }
 
-    return { success: true };
+    return { success: false, error: 'Slide tidak ditemukan' };
   }
 
   return { success: false };
@@ -146,6 +152,17 @@ export function meta({}: Route.MetaArgs) {
 
 export default function Config({ loaderData, actionData }: Route.ComponentProps) {
   const { siteConfig, heroSlides } = loaderData;
+  const navigation = useNavigation();
+  const isSubmitting = navigation.state === 'submitting';
+
+  useEffect(() => {
+    if (actionData && 'success' in actionData && actionData.success && 'message' in actionData && typeof actionData.message === 'string') {
+      toast.success(actionData.message);
+    }
+    if (actionData && 'error' in actionData && actionData.error && typeof actionData.error === 'string') {
+      toast.error(actionData.error);
+    }
+  }, [actionData]);
 
   return (
     <div className="space-y-8">
@@ -155,12 +172,6 @@ export default function Config({ loaderData, actionData }: Route.ComponentProps)
           Edit pengaturan umum website dan informasi kontak
         </p>
       </div>
-
-      {actionData?.success && (
-        <div className="p-4 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg text-green-800 dark:text-green-200">
-          ✅ Konfigurasi berhasil disimpan
-        </div>
-      )}
 
       <Form method="post">
         <div className="space-y-6">
@@ -179,6 +190,7 @@ export default function Config({ loaderData, actionData }: Route.ComponentProps)
                   id="heroTitle"
                   name="heroTitle"
                   defaultValue={siteConfig.heroTitle}
+                  disabled={isSubmitting}
                   className="mt-2"
                 />
               </div>
@@ -190,6 +202,7 @@ export default function Config({ loaderData, actionData }: Route.ComponentProps)
                   id="heroSubtitle"
                   name="heroSubtitle"
                   defaultValue={siteConfig.heroSubtitle}
+                  disabled={isSubmitting}
                   className="mt-2"
                 />
               </div>
@@ -202,6 +215,7 @@ export default function Config({ loaderData, actionData }: Route.ComponentProps)
                   name="heroImage"
                   defaultValue={siteConfig.heroImage}
                   placeholder="/images/hero.jpg"
+                  disabled={isSubmitting}
                   className="mt-2"
                 />
               </div>
@@ -224,6 +238,7 @@ export default function Config({ loaderData, actionData }: Route.ComponentProps)
                   name="whatsappNumber"
                   defaultValue={siteConfig.whatsappNumber}
                   placeholder="6281234567890"
+                  disabled={isSubmitting}
                   className="mt-2"
                 />
                 <p className="text-sm text-gray-500 mt-1">
@@ -239,6 +254,7 @@ export default function Config({ loaderData, actionData }: Route.ComponentProps)
                   name="facebookUrl"
                   defaultValue={siteConfig.facebookUrl}
                   placeholder="https://facebook.com/umrohkita"
+                  disabled={isSubmitting}
                   className="mt-2"
                 />
               </div>
@@ -251,6 +267,7 @@ export default function Config({ loaderData, actionData }: Route.ComponentProps)
                   name="instagramUrl"
                   defaultValue={siteConfig.instagramUrl}
                   placeholder="https://instagram.com/umrohkita"
+                  disabled={isSubmitting}
                   className="mt-2"
                 />
               </div>
@@ -272,6 +289,7 @@ export default function Config({ loaderData, actionData }: Route.ComponentProps)
                   id="metaTitleTemplate"
                   name="metaTitleTemplate"
                   defaultValue={siteConfig.metaTitleTemplate}
+                  disabled={isSubmitting}
                   className="mt-2"
                 />
               </div>
@@ -283,6 +301,7 @@ export default function Config({ loaderData, actionData }: Route.ComponentProps)
                   name="metaDescription"
                   defaultValue={siteConfig.metaDescription}
                   rows={3}
+                  disabled={isSubmitting}
                   className="mt-2"
                 />
               </div>
@@ -291,8 +310,15 @@ export default function Config({ loaderData, actionData }: Route.ComponentProps)
 
           <input type="hidden" name="_action" value="updateSiteConfig" />
 
-          <Button type="submit" size="lg">
-            Simpan Perubahan
+          <Button type="submit" size="lg" disabled={isSubmitting}>
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Menyimpan...
+              </>
+            ) : (
+              'Simpan Perubahan'
+            )}
           </Button>
         </div>
       </Form>
@@ -323,6 +349,7 @@ export default function Config({ loaderData, actionData }: Route.ComponentProps)
                     name="imageFile"
                     type="file"
                     accept="image/*"
+                    disabled={isSubmitting}
                     className="mt-2"
                   />
                   <p className="text-xs text-muted-foreground mt-1">
@@ -336,6 +363,7 @@ export default function Config({ loaderData, actionData }: Route.ComponentProps)
                     name="imageUrl"
                     type="text"
                     placeholder="https://.../banner.jpg"
+                    disabled={isSubmitting}
                     className="mt-2"
                   />
                   <p className="text-xs text-muted-foreground mt-1">
@@ -353,6 +381,7 @@ export default function Config({ loaderData, actionData }: Route.ComponentProps)
                     type="number"
                     min={0}
                     defaultValue={heroSlides.length}
+                    disabled={isSubmitting}
                     className="mt-2"
                   />
                   <p className="text-xs text-muted-foreground mt-1">
@@ -361,8 +390,15 @@ export default function Config({ loaderData, actionData }: Route.ComponentProps)
                 </div>
                 <div className="md:ml-auto">
                   <input type="hidden" name="_action" value="createHeroSlide" />
-                  <Button type="submit" size="sm">
-                    Tambah Slide
+                  <Button type="submit" size="sm" disabled={isSubmitting}>
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Menambahkan...
+                      </>
+                    ) : (
+                      'Tambah Slide'
+                    )}
                   </Button>
                 </div>
               </div>
@@ -388,30 +424,8 @@ export default function Config({ loaderData, actionData }: Route.ComponentProps)
                         </p>
                       </div>
                       <div className="flex items-center gap-2 w-full md:w-auto justify-between md:justify-end">
-                        <Form method="post" className="flex items-center gap-2">
-                          <Input
-                            type="number"
-                            name="order"
-                            defaultValue={slide.order}
-                            className="w-20 text-sm"
-                          />
-                          <input type="hidden" name="id" value={slide.id} />
-                          <input type="hidden" name="_action" value="updateHeroSlideOrder" />
-                          <Button type="submit" size="sm" variant="outline">
-                            Simpan
-                          </Button>
-                        </Form>
-                        <Form method="post">
-                          <input type="hidden" name="id" value={slide.id} />
-                          <input type="hidden" name="_action" value="deleteHeroSlide" />
-                          <Button
-                            type="submit"
-                            size="sm"
-                            variant="destructive"
-                          >
-                            Hapus
-                          </Button>
-                        </Form>
+                        <HeroSlideOrderForm slide={slide} />
+                        <HeroSlideDeleteButton slide={slide} />
                       </div>
                     </div>
                   ))}
@@ -426,6 +440,71 @@ export default function Config({ loaderData, actionData }: Route.ComponentProps)
         </Card>
       </div>
     </div>
+  );
+}
+
+function HeroSlideOrderForm({ slide }: { slide: any }) {
+  const fetcher = useFetcher();
+  const isPending = fetcher.state !== 'idle';
+
+  return (
+    <fetcher.Form method="post" className="flex items-center gap-2">
+      <Input
+        type="number"
+        name="order"
+        defaultValue={slide.order}
+        disabled={isPending}
+        className="w-20 text-sm"
+      />
+      <input type="hidden" name="id" value={slide.id} />
+      <input type="hidden" name="_action" value="updateHeroSlideOrder" />
+      <Button type="submit" size="sm" variant="outline" disabled={isPending}>
+        {isPending ? (
+          <>
+            <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+            Menyimpan...
+          </>
+        ) : (
+          'Simpan'
+        )}
+      </Button>
+    </fetcher.Form>
+  );
+}
+
+function HeroSlideDeleteButton({ slide }: { slide: any }) {
+  const fetcher = useFetcher();
+  const isPending = fetcher.state !== 'idle';
+
+  useEffect(() => {
+    if (fetcher.data && 'success' in fetcher.data && fetcher.data.success && 'message' in fetcher.data && typeof fetcher.data.message === 'string') {
+      toast.success(fetcher.data.message);
+    }
+    if (fetcher.data && 'error' in fetcher.data && fetcher.data.error && typeof fetcher.data.error === 'string') {
+      toast.error(fetcher.data.error);
+    }
+  }, [fetcher.data]);
+
+  return (
+    <fetcher.Form method="post">
+      <input type="hidden" name="id" value={slide.id} />
+      <input type="hidden" name="_action" value="deleteHeroSlide" />
+      <Button
+        type="submit"
+        size="sm"
+        variant="destructive"
+        disabled={isPending}
+      >
+        {isPending ? (
+          <>
+            <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+            Menghapus...
+          </>
+        ) : (
+          'Hapus'
+        )}
+      </Button>
+    </fetcher.Form>
   );
 }
 

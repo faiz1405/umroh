@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Form, Link } from 'react-router';
+import { useState, useEffect } from 'react';
+import { Form, Link, useNavigation, useFetcher, useActionData } from 'react-router';
 import slugify from 'slugify';
 import type { Route } from './+types/posts';
 import { db } from '~/lib/db.server';
@@ -25,7 +25,8 @@ import {
 import { Input } from '~/components/ui/input';
 import { Label } from '~/components/ui/label';
 import { Textarea } from '~/components/ui/textarea';
-import { PenSquare, Eye, Trash2, FileText } from 'lucide-react';
+import { PenSquare, Eye, Trash2, FileText, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import MDEditor from '@uiw/react-md-editor';
 import '@uiw/react-md-editor/markdown-editor.css';
 import '@uiw/react-markdown-preview/markdown.css';
@@ -114,11 +115,89 @@ export function meta({}: Route.MetaArgs) {
   return [{ title: 'Kelola Blog Posts - Admin UmrohKita' }];
 }
 
+function PostTogglePublishButton({ post }: { post: any }) {
+  const fetcher = useFetcher();
+  const isPending = fetcher.state !== 'idle';
+
+  return (
+    <fetcher.Form method="post" style={{ display: 'inline' }}>
+      <input type="hidden" name="intent" value="toggle-publish" />
+      <input type="hidden" name="id" value={post.id} />
+      <Button variant="outline" size="sm" type="submit" disabled={isPending}>
+        {isPending ? (
+          <>
+            <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+            Memproses...
+          </>
+        ) : (
+          post.published ? 'Unpublish' : 'Publish'
+        )}
+      </Button>
+    </fetcher.Form>
+  );
+}
+
+function PostDeleteButton({ post }: { post: any }) {
+  const fetcher = useFetcher();
+  const isPending = fetcher.state !== 'idle';
+
+  useEffect(() => {
+    if (fetcher.data?.success && fetcher.data?.message) {
+      toast.success(fetcher.data.message);
+    }
+    if (fetcher.data?.error) {
+      toast.error(fetcher.data.error);
+    }
+  }, [fetcher.data]);
+
+  return (
+    <fetcher.Form method="post" style={{ display: 'inline' }}>
+      <input type="hidden" name="intent" value="delete" />
+      <input type="hidden" name="id" value={post.id} />
+      <Button
+        variant="destructive"
+        size="sm"
+        type="submit"
+        disabled={isPending}
+        onClick={(e) => {
+          if (!confirm('Yakin ingin menghapus artikel ini?')) {
+            e.preventDefault();
+          }
+        }}
+      >
+        {isPending ? (
+          <>
+            <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+            Menghapus...
+          </>
+        ) : (
+          <>
+            <Trash2 className="h-4 w-4 mr-1" />
+            Hapus
+          </>
+        )}
+      </Button>
+    </fetcher.Form>
+  );
+}
+
 export default function Posts({ loaderData }: Route.ComponentProps) {
   const { posts } = loaderData;
   const [editingPost, setEditingPost] = useState<any>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [markdownContent, setMarkdownContent] = useState('');
+  const navigation = useNavigation();
+  const isSubmitting = navigation.state === 'submitting';
+  const actionData = useActionData<typeof action>();
+
+  useEffect(() => {
+    if (actionData && 'success' in actionData && actionData.success && 'message' in actionData && typeof actionData.message === 'string') {
+      toast.success(actionData.message);
+    }
+    if (actionData && 'error' in actionData && actionData.error && typeof actionData.error === 'string') {
+      toast.error(actionData.error);
+    }
+  }, [actionData]);
 
   return (
     <div className="space-y-8">
@@ -181,6 +260,7 @@ export default function Posts({ loaderData }: Route.ComponentProps) {
                     name="title"
                     defaultValue={editingPost?.title || ''}
                     required
+                    disabled={isSubmitting}
                     className="mt-2"
                   />
                 </div>
@@ -193,6 +273,7 @@ export default function Posts({ loaderData }: Route.ComponentProps) {
                     defaultValue={editingPost?.excerpt || ''}
                     rows={2}
                     placeholder="Ringkasan singkat artikel..."
+                    disabled={isSubmitting}
                     className="mt-2"
                   />
                 </div>
@@ -220,6 +301,7 @@ export default function Posts({ loaderData }: Route.ComponentProps) {
                     id="published"
                     name="published"
                     defaultChecked={editingPost?.published || false}
+                    disabled={isSubmitting}
                     className="w-4 h-4"
                   />
                   <Label htmlFor="published" className="cursor-pointer">
@@ -227,8 +309,15 @@ export default function Posts({ loaderData }: Route.ComponentProps) {
                   </Label>
                 </div>
 
-                <Button type="submit" className="w-full">
-                  {editingPost ? 'Update Artikel' : 'Tambah Artikel'}
+                <Button type="submit" className="w-full" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {editingPost ? 'Menyimpan...' : 'Menambahkan...'}
+                    </>
+                  ) : (
+                    editingPost ? 'Update Artikel' : 'Tambah Artikel'
+                  )}
                 </Button>
               </div>
             </Form>
@@ -298,6 +387,7 @@ export default function Posts({ loaderData }: Route.ComponentProps) {
                         <Button
                           variant="outline"
                           size="sm"
+                          disabled={isSubmitting || dialogOpen}
                           onClick={() => {
                             setEditingPost(post);
                             setMarkdownContent(post.content);
@@ -307,30 +397,8 @@ export default function Posts({ loaderData }: Route.ComponentProps) {
                           <PenSquare className="h-4 w-4 mr-1" />
                           Edit
                         </Button>
-                        <Form method="post" style={{ display: 'inline' }}>
-                          <input type="hidden" name="intent" value="toggle-publish" />
-                          <input type="hidden" name="id" value={post.id} />
-                          <Button variant="outline" size="sm" type="submit">
-                            {post.published ? 'Unpublish' : 'Publish'}
-                          </Button>
-                        </Form>
-                        <Form method="post" style={{ display: 'inline' }}>
-                          <input type="hidden" name="intent" value="delete" />
-                          <input type="hidden" name="id" value={post.id} />
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            type="submit"
-                            onClick={(e) => {
-                              if (!confirm('Yakin ingin menghapus artikel ini?')) {
-                                e.preventDefault();
-                              }
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4 mr-1" />
-                            Hapus
-                          </Button>
-                        </Form>
+                        <PostTogglePublishButton post={post} />
+                        <PostDeleteButton post={post} />
                       </div>
                     </TableCell>
                   </TableRow>

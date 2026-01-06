@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Form, useNavigate } from 'react-router';
+import { useState, useEffect } from 'react';
+import { Form, useNavigate, useNavigation, useFetcher, useActionData } from 'react-router';
 import type { Route } from './+types/services';
 import { db } from '~/lib/db.server';
 import { requireAuth } from '~/lib/auth.server';
@@ -23,7 +23,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '~/components/ui/dialog';
-import { Package, Plus, PenSquare, Trash2 } from 'lucide-react';
+import { Package, Plus, PenSquare, Trash2, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 export async function loader({ request }: Route.LoaderArgs) {
   await requireAuth(request);
@@ -50,6 +51,7 @@ export async function action({ request }: Route.ActionArgs) {
     await db.service.create({
       data: { title, description, imageUrl, order },
     });
+    return { success: true, message: 'Layanan berhasil ditambahkan' };
   } else if (intent === 'update') {
     const id = formData.get('id')?.toString();
     const title = formData.get('title')?.toString() || '';
@@ -62,11 +64,13 @@ export async function action({ request }: Route.ActionArgs) {
         where: { id },
         data: { title, description, imageUrl, order },
       });
+      return { success: true, message: 'Layanan berhasil diperbarui' };
     }
   } else if (intent === 'delete') {
     const id = formData.get('id')?.toString();
     if (id) {
       await db.service.delete({ where: { id } });
+      return { success: true, message: 'Layanan berhasil dihapus' };
     }
   }
 
@@ -77,10 +81,66 @@ export function meta({}: Route.MetaArgs) {
   return [{ title: 'Kelola Layanan - Admin UmrohKita' }];
 }
 
+function ServiceDeleteButton({ service }: { service: any }) {
+  const fetcher = useFetcher();
+  const isPending = fetcher.state !== 'idle';
+
+  useEffect(() => {
+    if (fetcher.data && 'success' in fetcher.data && fetcher.data.success && 'message' in fetcher.data && typeof fetcher.data.message === 'string') {
+      toast.success(fetcher.data.message);
+    }
+    if (fetcher.data && 'error' in fetcher.data && fetcher.data.error && typeof fetcher.data.error === 'string') {
+      toast.error(fetcher.data.error);
+    }
+  }, [fetcher.data]);
+
+  return (
+    <fetcher.Form method="post" style={{ display: 'inline' }}>
+      <input type="hidden" name="intent" value="delete" />
+      <input type="hidden" name="id" value={service.id} />
+      <Button
+        variant="destructive"
+        size="sm"
+        type="submit"
+        disabled={isPending}
+        onClick={(e) => {
+          if (!confirm('Yakin ingin menghapus layanan ini?')) {
+            e.preventDefault();
+          }
+        }}
+      >
+        {isPending ? (
+          <>
+            <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+            Menghapus...
+          </>
+        ) : (
+          <>
+            <Trash2 className="h-4 w-4 mr-1" />
+            Hapus
+          </>
+        )}
+      </Button>
+    </fetcher.Form>
+  );
+}
+
 export default function Services({ loaderData }: Route.ComponentProps) {
   const { services } = loaderData;
   const [editingService, setEditingService] = useState<any>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const navigation = useNavigation();
+  const isSubmitting = navigation.state === 'submitting';
+  const actionData = useActionData<typeof action>();
+
+  useEffect(() => {
+    if (actionData && 'success' in actionData && actionData.success && 'message' in actionData && typeof actionData.message === 'string') {
+      toast.success(actionData.message);
+    }
+    if (actionData && 'error' in actionData && actionData.error && typeof actionData.error === 'string') {
+      toast.error(actionData.error);
+    }
+  }, [actionData]);
 
   return (
     <div className="space-y-8">
@@ -123,6 +183,7 @@ export default function Services({ loaderData }: Route.ComponentProps) {
                     name="title"
                     defaultValue={editingService?.title || ''}
                     required
+                    disabled={isSubmitting}
                     className="mt-2"
                   />
                 </div>
@@ -135,6 +196,7 @@ export default function Services({ loaderData }: Route.ComponentProps) {
                     defaultValue={editingService?.description || ''}
                     rows={6}
                     required
+                    disabled={isSubmitting}
                     className="mt-2"
                   />
                 </div>
@@ -147,6 +209,7 @@ export default function Services({ loaderData }: Route.ComponentProps) {
                     name="imageUrl"
                     defaultValue={editingService?.imageUrl || ''}
                     placeholder="/images/service.jpg"
+                    disabled={isSubmitting}
                     className="mt-2"
                   />
                 </div>
@@ -158,12 +221,20 @@ export default function Services({ loaderData }: Route.ComponentProps) {
                     id="order"
                     name="order"
                     defaultValue={editingService?.order || 0}
+                    disabled={isSubmitting}
                     className="mt-2"
                   />
                 </div>
 
-                <Button type="submit" className="w-full">
-                  {editingService ? 'Update Layanan' : 'Tambah Layanan'}
+                <Button type="submit" className="w-full" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {editingService ? 'Menyimpan...' : 'Menambahkan...'}
+                    </>
+                  ) : (
+                    editingService ? 'Update Layanan' : 'Tambah Layanan'
+                  )}
                 </Button>
               </div>
             </Form>
@@ -209,6 +280,7 @@ export default function Services({ loaderData }: Route.ComponentProps) {
                         <Button
                           variant="outline"
                           size="sm"
+                          disabled={isSubmitting || dialogOpen}
                           onClick={() => {
                             setEditingService(service);
                             setDialogOpen(true);
@@ -217,23 +289,7 @@ export default function Services({ loaderData }: Route.ComponentProps) {
                           <PenSquare className="h-4 w-4 mr-1" />
                           Edit
                         </Button>
-                        <Form method="post" style={{ display: 'inline' }}>
-                          <input type="hidden" name="intent" value="delete" />
-                          <input type="hidden" name="id" value={service.id} />
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            type="submit"
-                            onClick={(e) => {
-                              if (!confirm('Yakin ingin menghapus layanan ini?')) {
-                                e.preventDefault();
-                              }
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4 mr-1" />
-                            Hapus
-                          </Button>
-                        </Form>
+                        <ServiceDeleteButton service={service} />
                       </div>
                     </TableCell>
                   </TableRow>

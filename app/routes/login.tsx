@@ -1,4 +1,5 @@
-import { Form, Link, redirect } from 'react-router';
+import { useEffect } from 'react';
+import { Form, Link, redirect, useNavigation } from 'react-router';
 import type { Route } from './+types/login';
 import { verifyLogin } from '~/lib/auth.server';
 import { createUserSession, getUserId } from '~/lib/session.server';
@@ -6,7 +7,8 @@ import { Input } from '~/components/ui/input';
 import { Label } from '~/components/ui/label';
 import { Button } from '~/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card';
-import { AlertCircle, ArrowLeft, Lock, Mail } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Lock, Mail, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 export async function loader({ request }: Route.LoaderArgs) {
   const userId = await getUserId(request);
@@ -42,6 +44,15 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function Login({ actionData }: Route.ComponentProps) {
+  const navigation = useNavigation();
+  const isSubmitting = navigation.state === 'submitting';
+
+  useEffect(() => {
+    if (actionData?.error) {
+      toast.error(actionData.error);
+    }
+  }, [actionData]);
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted/50 px-4 py-12">
       <div className="w-full max-w-md space-y-6">
@@ -82,6 +93,7 @@ export default function Login({ actionData }: Route.ComponentProps) {
                     required
                     autoComplete="email"
                     placeholder="nama@example.com"
+                    disabled={isSubmitting}
                     className="pl-9"
                   />
                 </div>
@@ -98,13 +110,21 @@ export default function Login({ actionData }: Route.ComponentProps) {
                     required
                     autoComplete="current-password"
                     placeholder="••••••••"
+                    disabled={isSubmitting}
                     className="pl-9"
                   />
                 </div>
               </div>
 
-              <Button type="submit" className="w-full" size="lg">
-                Masuk
+              <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Masuk...
+                  </>
+                ) : (
+                  'Masuk'
+                )}
               </Button>
             </Form>
 

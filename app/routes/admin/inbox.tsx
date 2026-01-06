@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Form } from 'react-router';
+import { useState, useEffect } from 'react';
+import { Form, useFetcher } from 'react-router';
 import type { Route } from './+types/inbox';
 import { db } from '~/lib/db.server';
 import { requireAuth } from '~/lib/auth.server';
@@ -21,7 +21,8 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '~/components/ui/sheet';
-import { Mail, MailOpen, Eye, Trash2, CheckCircle2 } from 'lucide-react';
+import { Mail, MailOpen, Eye, Trash2, CheckCircle2, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 export async function loader({ request }: Route.LoaderArgs) {
   await requireAuth(request);
@@ -45,13 +46,16 @@ export async function action({ request }: Route.ActionArgs) {
       where: { id },
       data: { status: 'READ' },
     });
+    return { success: true, message: 'Pesan ditandai sebagai sudah dibaca' };
   } else if (intent === 'mark-unread' && id) {
     await db.contactMessage.update({
       where: { id },
       data: { status: 'UNREAD' },
     });
+    return { success: true, message: 'Pesan ditandai sebagai belum dibaca' };
   } else if (intent === 'delete' && id) {
     await db.contactMessage.delete({ where: { id } });
+    return { success: true, message: 'Pesan berhasil dihapus' };
   }
 
   return { success: true };
@@ -225,91 +229,18 @@ export default function Inbox({ loaderData }: Route.ComponentProps) {
                                   </p>
                                 </div>
                                 <div className="pt-4 border-t space-y-2">
-                                  <Form method="post">
-                                    <input
-                                      type="hidden"
-                                      name="intent"
-                                      value={
-                                        selectedMessage.status === 'READ'
-                                          ? 'mark-unread'
-                                          : 'mark-read'
-                                      }
-                                    />
-                                    <input
-                                      type="hidden"
-                                      name="id"
-                                      value={selectedMessage.id}
-                                    />
-                                    <Button
-                                      type="submit"
-                                      variant="outline"
-                                      className="w-full"
-                                    >
-                                      {selectedMessage.status === 'READ' ? (
-                                        <>
-                                          <Mail className="h-4 w-4 mr-2" />
-                                          Tandai Belum Dibaca
-                                        </>
-                                      ) : (
-                                        <>
-                                          <CheckCircle2 className="h-4 w-4 mr-2" />
-                                          Tandai Sudah Dibaca
-                                        </>
-                                      )}
-                                    </Button>
-                                  </Form>
-                                  <Form method="post">
-                                    <input type="hidden" name="intent" value="delete" />
-                                    <input
-                                      type="hidden"
-                                      name="id"
-                                      value={selectedMessage.id}
-                                    />
-                                    <Button
-                                      type="submit"
-                                      variant="destructive"
-                                      className="w-full"
-                                      onClick={(e) => {
-                                        if (!confirm('Yakin ingin menghapus pesan ini?')) {
-                                          e.preventDefault();
-                                        } else {
-                                          setSheetOpen(false);
-                                        }
-                                      }}
-                                    >
-                                      <Trash2 className="h-4 w-4 mr-2" />
-                                      Hapus Pesan
-                                    </Button>
-                                  </Form>
+                                  <InboxSheetMarkReadButton message={selectedMessage} />
+                                  <InboxSheetDeleteButton 
+                                    message={selectedMessage} 
+                                    onDelete={() => setSheetOpen(false)} 
+                                  />
                                 </div>
                               </div>
                             )}
                           </SheetContent>
                         </Sheet>
 
-                        <Form method="post" style={{ display: 'inline' }}>
-                          <input
-                            type="hidden"
-                            name="intent"
-                            value={
-                              message.status === 'READ' ? 'mark-unread' : 'mark-read'
-                            }
-                          />
-                          <input type="hidden" name="id" value={message.id} />
-                          <Button variant="outline" size="sm" type="submit">
-                            {message.status === 'READ' ? (
-                              <>
-                                <Mail className="h-4 w-4 mr-1" />
-                                Tandai Baru
-                              </>
-                            ) : (
-                              <>
-                                <CheckCircle2 className="h-4 w-4 mr-1" />
-                                Tandai Dibaca
-                              </>
-                            )}
-                          </Button>
-                        </Form>
+                        <InboxMarkReadButton message={message} />
                       </div>
                     </TableCell>
                 </TableRow>
@@ -320,6 +251,148 @@ export default function Inbox({ loaderData }: Route.ComponentProps) {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+function InboxMarkReadButton({ message }: { message: any }) {
+  const fetcher = useFetcher();
+  const isPending = fetcher.state !== 'idle';
+
+  useEffect(() => {
+    if (fetcher.data && 'success' in fetcher.data && fetcher.data.success && 'message' in fetcher.data && typeof fetcher.data.message === 'string') {
+      toast.success(fetcher.data.message);
+    }
+    if (fetcher.data && 'error' in fetcher.data && fetcher.data.error && typeof fetcher.data.error === 'string') {
+      toast.error(fetcher.data.error);
+    }
+  }, [fetcher.data]);
+
+  return (
+    <fetcher.Form method="post" style={{ display: 'inline' }}>
+      <input
+        type="hidden"
+        name="intent"
+        value={message.status === 'READ' ? 'mark-unread' : 'mark-read'}
+      />
+      <input type="hidden" name="id" value={message.id} />
+      <Button variant="outline" size="sm" type="submit" disabled={isPending}>
+        {isPending ? (
+          <>
+            <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+            Memproses...
+          </>
+        ) : message.status === 'READ' ? (
+          <>
+            <Mail className="h-4 w-4 mr-1" />
+            Tandai Baru
+          </>
+        ) : (
+          <>
+            <CheckCircle2 className="h-4 w-4 mr-1" />
+            Tandai Dibaca
+          </>
+        )}
+      </Button>
+    </fetcher.Form>
+  );
+}
+
+function InboxSheetMarkReadButton({ message }: { message: any }) {
+  const fetcher = useFetcher();
+  const isPending = fetcher.state !== 'idle';
+
+  useEffect(() => {
+    if (fetcher.data && 'success' in fetcher.data && fetcher.data.success && 'message' in fetcher.data && typeof fetcher.data.message === 'string') {
+      toast.success(fetcher.data.message);
+    }
+    if (fetcher.data && 'error' in fetcher.data && fetcher.data.error && typeof fetcher.data.error === 'string') {
+      toast.error(fetcher.data.error);
+    }
+  }, [fetcher.data]);
+
+  return (
+    <fetcher.Form method="post">
+      <input
+        type="hidden"
+        name="intent"
+        value={message.status === 'READ' ? 'mark-unread' : 'mark-read'}
+      />
+      <input type="hidden" name="id" value={message.id} />
+      <Button
+        type="submit"
+        variant="outline"
+        className="w-full"
+        disabled={isPending}
+      >
+        {isPending ? (
+          <>
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            Memproses...
+          </>
+        ) : message.status === 'READ' ? (
+          <>
+            <Mail className="h-4 w-4 mr-2" />
+            Tandai Belum Dibaca
+          </>
+        ) : (
+          <>
+            <CheckCircle2 className="h-4 w-4 mr-2" />
+            Tandai Sudah Dibaca
+          </>
+        )}
+      </Button>
+    </fetcher.Form>
+  );
+}
+
+function InboxSheetDeleteButton({ 
+  message, 
+  onDelete 
+}: { 
+  message: any; 
+  onDelete: () => void;
+}) {
+  const fetcher = useFetcher();
+  const isPending = fetcher.state !== 'idle';
+
+  useEffect(() => {
+    if (fetcher.data?.success && fetcher.data?.message) {
+      toast.success(fetcher.data.message);
+      onDelete();
+    }
+    if (fetcher.data?.error) {
+      toast.error(fetcher.data.error);
+    }
+  }, [fetcher.data, onDelete]);
+
+  return (
+    <fetcher.Form method="post">
+      <input type="hidden" name="intent" value="delete" />
+      <input type="hidden" name="id" value={message.id} />
+      <Button
+        type="submit"
+        variant="destructive"
+        className="w-full"
+        disabled={isPending}
+        onClick={(e) => {
+          if (!confirm('Yakin ingin menghapus pesan ini?')) {
+            e.preventDefault();
+          }
+        }}
+      >
+        {isPending ? (
+          <>
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            Menghapus...
+          </>
+        ) : (
+          <>
+            <Trash2 className="h-4 w-4 mr-2" />
+            Hapus Pesan
+          </>
+        )}
+      </Button>
+    </fetcher.Form>
   );
 }
 
