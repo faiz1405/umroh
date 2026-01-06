@@ -1,0 +1,94 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider   = "prisma-client-js"
+  output     = "../generated/prisma"
+  engineType = "library"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// User model for admin authentication
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String   // Hashed password
+  createdAt DateTime @default(now())
+
+  @@map("users")
+}
+
+// Site configuration (single row)
+model SiteConfig {
+  id                String   @id @default(cuid())
+  heroTitle         String   @default("Selamat Datang")
+  heroSubtitle      String   @default("Layanan Umroh & Haji Terpercaya")
+  heroImage         String   @default("")
+  whatsappNumber    String   @default("")
+  facebookUrl       String   @default("")
+  instagramUrl      String   @default("")
+  metaTitleTemplate String   @default("")
+  metaDescription   String   @default("")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("site_config")
+}
+
+// Hero slider images
+model HeroSlide {
+  id        String   @id @default(cuid())
+  imageUrl  String
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@map("hero_slides")
+}
+
+// Service offerings
+model Service {
+  id          String   @id @default(cuid())
+  title       String
+  description String   @db.Text
+  imageUrl    String   @default("")
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("services")
+}
+
+// Blog posts
+model Post {
+  id          String    @id @default(cuid())
+  title       String
+  slug        String    @unique
+  content     String    @db.Text // Markdown content
+  excerpt     String    @default("") @db.Text
+  published   Boolean   @default(false)
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("posts")
+}
+
+// Contact form messages
+model ContactMessage {
+  id        String              @id @default(cuid())
+  name      String
+  email     String
+  message   String              @db.Text
+  status    ContactMessageStatus @default(UNREAD)
+  createdAt DateTime            @default(now())
+
+  @@map("contact_messages")
+}
+
+enum ContactMessageStatus {
+  UNREAD
+  READ
+}
