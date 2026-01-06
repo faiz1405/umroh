@@ -1,28 +1,19 @@
-import 'dotenv/config';
-import { createRequire } from 'module';
-import type { PrismaClient as PrismaClientType } from '@prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg';
-import pg from 'pg';
+import { PrismaClient } from '@prisma/client';
+import { PrismaNeon } from '@prisma/adapter-neon';
+import { Pool } from '@neondatabase/serverless';
 
-// Ensure Prisma sees DATABASE_URL (fallback from VITE_DB_URL)
-if (!process.env.DATABASE_URL && process.env.VITE_DB_URL) {
-  process.env.DATABASE_URL = process.env.VITE_DB_URL;
+const connectionString = process.env.DATABASE_URL || process.env.VITE_DB_URL;
+
+if (!connectionString) {
+  throw new Error('DATABASE_URL is not set. Please configure it in your environment variables.');
 }
 
-if (!process.env.DATABASE_URL) {
-  throw new Error('DATABASE_URL or VITE_DB_URL must be set');
-}
-
-// Use CommonJS require so Prisma's generated CJS client works in ESM/Vite SSR
-const require = createRequire(import.meta.url);
-const { PrismaClient } = require('../../generated/prisma') as typeof import('../../generated/prisma');
-
-// Setup pg adapter for Neon PostgreSQL (works with Neon connection strings)
-const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
-const adapter = new PrismaPg(pool);
+// Setup Neon serverless adapter
+const pool = new Pool({ connectionString });
+const adapter = new PrismaNeon(pool);
 
 const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClientType | undefined;
+  prisma: PrismaClient | undefined;
 };
 
 export const db =
