@@ -24,6 +24,12 @@ npm run db:seed
 
 ## Deploy ke Vercel
 
+### ⚠️ IMPORTANT: React Router 7 SSR Configuration
+
+React Router 7 menggunakan **SSR (Server-Side Rendering)**, bukan static site. 
+
+**Jika kamu mengalami error 404 NOT_FOUND**, baca **VERCEL_FIX.md** untuk solusinya!
+
 ### Step 1: Install Vercel CLI (Opsional)
 
 ```bash
