@@ -1,9 +1,12 @@
 .DS_Store
 .env
+.env.*
+!.env.example
 /node_modules/
 
 # React Router
 /.react-router/
 /build/
 
-/generated/prisma
+# Prisma (old custom output, not used anymore)
+/generated/
