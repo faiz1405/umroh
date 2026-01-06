@@ -6,7 +6,7 @@ import tsconfigPaths from "vite-tsconfig-paths";
 export default defineConfig({
   plugins: [tailwindcss(), reactRouter(), tsconfigPaths()],
   ssr: {
-    external: ["@prisma/client", "./generated/prisma"],
+    external: ["@prisma/client"],
     noExternal: ["@uiw/react-md-editor", "@uiw/react-markdown-preview"],
   },
 });

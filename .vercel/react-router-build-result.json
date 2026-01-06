@@ -1,0 +1,342 @@
+{
+  "buildManifest": {
+    "serverBundles": {
+      "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0": {
+        "id": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+        "file": "build/server/nodejs_eyJydW50aW1lIjoibm9kZWpzIn0/index.js",
+        "config": {
+          "runtime": "nodejs"
+        }
+      }
+    },
+    "routeIdToServerBundleId": {
+      "routes/public/home": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/public/about": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/public/services": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/public/blog-list": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/public/blog-detail": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/public/contact": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/login": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/logout": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/admin/dashboard": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/admin/config": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/admin/services": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/admin/posts": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/admin/inbox": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0"
+    },
+    "routes": {
+      "root": {
+        "id": "root",
+        "file": "app/root.tsx",
+        "path": "",
+        "config": {}
+      },
+      "routes/public/home": {
+        "id": "routes/public/home",
+        "parentId": "root",
+        "file": "app/routes/public/home.tsx",
+        "index": true,
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/public/about": {
+        "id": "routes/public/about",
+        "parentId": "root",
+        "file": "app/routes/public/about.tsx",
+        "path": "about",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/public/services": {
+        "id": "routes/public/services",
+        "parentId": "root",
+        "file": "app/routes/public/services.tsx",
+        "path": "layanan",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/public/blog-list": {
+        "id": "routes/public/blog-list",
+        "parentId": "root",
+        "file": "app/routes/public/blog-list.tsx",
+        "path": "blog",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/public/blog-detail": {
+        "id": "routes/public/blog-detail",
+        "parentId": "root",
+        "file": "app/routes/public/blog-detail.tsx",
+        "path": "blog/:slug",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/public/contact": {
+        "id": "routes/public/contact",
+        "parentId": "root",
+        "file": "app/routes/public/contact.tsx",
+        "path": "contact",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/login": {
+        "id": "routes/login",
+        "parentId": "root",
+        "file": "app/routes/login.tsx",
+        "path": "login",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/logout": {
+        "id": "routes/logout",
+        "parentId": "root",
+        "file": "app/routes/logout.tsx",
+        "path": "logout",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/admin-layout": {
+        "id": "routes/admin-layout",
+        "parentId": "root",
+        "file": "app/routes/admin-layout.tsx",
+        "path": "admin",
+        "config": {}
+      },
+      "routes/admin/dashboard": {
+        "id": "routes/admin/dashboard",
+        "parentId": "routes/admin-layout",
+        "file": "app/routes/admin/dashboard.tsx",
+        "index": true,
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/admin/config": {
+        "id": "routes/admin/config",
+        "parentId": "routes/admin-layout",
+        "file": "app/routes/admin/config.tsx",
+        "path": "config",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/admin/services": {
+        "id": "routes/admin/services",
+        "parentId": "routes/admin-layout",
+        "file": "app/routes/admin/services.tsx",
+        "path": "services",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/admin/posts": {
+        "id": "routes/admin/posts",
+        "parentId": "routes/admin-layout",
+        "file": "app/routes/admin/posts.tsx",
+        "path": "posts",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/admin/inbox": {
+        "id": "routes/admin/inbox",
+        "parentId": "routes/admin-layout",
+        "file": "app/routes/admin/inbox.tsx",
+        "path": "inbox",
+        "config": {
+          "runtime": "nodejs"
+        }
+      }
+    }
+  },
+  "reactRouterConfig": {
+    "appDirectory": "D:/me/umroh/umroh/app",
+    "basename": "/",
+    "buildDirectory": "D:/me/umroh/umroh/build",
+    "future": {
+      "unstable_optimizeDeps": false,
+      "unstable_subResourceIntegrity": false,
+      "v8_middleware": false,
+      "v8_splitRouteModules": false,
+      "v8_viteEnvironmentApi": false
+    },
+    "routes": {
+      "root": {
+        "id": "root",
+        "file": "root.tsx",
+        "path": ""
+      },
+      "routes/public/home": {
+        "id": "routes/public/home",
+        "parentId": "root",
+        "file": "routes/public/home.tsx",
+        "index": true
+      },
+      "routes/public/about": {
+        "id": "routes/public/about",
+        "parentId": "root",
+        "file": "routes/public/about.tsx",
+        "path": "about"
+      },
+      "routes/public/services": {
+        "id": "routes/public/services",
+        "parentId": "root",
+        "file": "routes/public/services.tsx",
+        "path": "layanan"
+      },
+      "routes/public/blog-list": {
+        "id": "routes/public/blog-list",
+        "parentId": "root",
+        "file": "routes/public/blog-list.tsx",
+        "path": "blog"
+      },
+      "routes/public/blog-detail": {
+        "id": "routes/public/blog-detail",
+        "parentId": "root",
+        "file": "routes/public/blog-detail.tsx",
+        "path": "blog/:slug"
+      },
+      "routes/public/contact": {
+        "id": "routes/public/contact",
+        "parentId": "root",
+        "file": "routes/public/contact.tsx",
+        "path": "contact"
+      },
+      "routes/login": {
+        "id": "routes/login",
+        "parentId": "root",
+        "file": "routes/login.tsx",
+        "path": "login"
+      },
+      "routes/logout": {
+        "id": "routes/logout",
+        "parentId": "root",
+        "file": "routes/logout.tsx",
+        "path": "logout"
+      },
+      "routes/admin-layout": {
+        "id": "routes/admin-layout",
+        "parentId": "root",
+        "file": "routes/admin-layout.tsx",
+        "path": "admin"
+      },
+      "routes/admin/dashboard": {
+        "id": "routes/admin/dashboard",
+        "parentId": "routes/admin-layout",
+        "file": "routes/admin/dashboard.tsx",
+        "index": true
+      },
+      "routes/admin/config": {
+        "id": "routes/admin/config",
+        "parentId": "routes/admin-layout",
+        "file": "routes/admin/config.tsx",
+        "path": "config"
+      },
+      "routes/admin/services": {
+        "id": "routes/admin/services",
+        "parentId": "routes/admin-layout",
+        "file": "routes/admin/services.tsx",
+        "path": "services"
+      },
+      "routes/admin/posts": {
+        "id": "routes/admin/posts",
+        "parentId": "routes/admin-layout",
+        "file": "routes/admin/posts.tsx",
+        "path": "posts"
+      },
+      "routes/admin/inbox": {
+        "id": "routes/admin/inbox",
+        "parentId": "routes/admin-layout",
+        "file": "routes/admin/inbox.tsx",
+        "path": "inbox"
+      }
+    },
+    "routeDiscovery": {
+      "mode": "lazy",
+      "manifestPath": "/__manifest"
+    },
+    "serverBuildFile": "index.js",
+    "serverModuleFormat": "esm",
+    "ssr": true,
+    "unstable_routeConfig": [
+      {
+        "id": "root",
+        "path": "",
+        "file": "root.tsx",
+        "children": [
+          {
+            "file": "routes/public/home.tsx",
+            "index": true
+          },
+          {
+            "file": "routes/public/about.tsx",
+            "path": "about"
+          },
+          {
+            "file": "routes/public/services.tsx",
+            "path": "layanan"
+          },
+          {
+            "file": "routes/public/blog-list.tsx",
+            "path": "blog"
+          },
+          {
+            "file": "routes/public/blog-detail.tsx",
+            "path": "blog/:slug"
+          },
+          {
+            "file": "routes/public/contact.tsx",
+            "path": "contact"
+          },
+          {
+            "file": "routes/login.tsx",
+            "path": "login"
+          },
+          {
+            "file": "routes/logout.tsx",
+            "path": "logout"
+          },
+          {
+            "file": "routes/admin-layout.tsx",
+            "children": [
+              {
+                "file": "routes/admin/dashboard.tsx",
+                "index": true
+              },
+              {
+                "file": "routes/admin/config.tsx",
+                "path": "config"
+              },
+              {
+                "file": "routes/admin/services.tsx",
+                "path": "services"
+              },
+              {
+                "file": "routes/admin/posts.tsx",
+                "path": "posts"
+              },
+              {
+                "file": "routes/admin/inbox.tsx",
+                "path": "inbox"
+              }
+            ],
+            "path": "admin"
+          }
+        ]
+      }
+    ]
+  },
+  "viteConfig": {
+    "build": {
+      "assetsDir": "assets"
+    }
+  }
+}
