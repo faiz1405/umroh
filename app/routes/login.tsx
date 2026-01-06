@@ -1,12 +1,12 @@
-import { Form, redirect } from 'react-router';
-import { motion } from 'framer-motion';
+import { Form, Link, redirect } from 'react-router';
 import type { Route } from './+types/login';
 import { verifyLogin } from '~/lib/auth.server';
 import { createUserSession, getUserId } from '~/lib/session.server';
 import { Input } from '~/components/ui/input';
 import { Label } from '~/components/ui/label';
 import { Button } from '~/components/ui/button';
-import { fadeInUp } from '~/lib/animations';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card';
+import { AlertCircle, ArrowLeft, Lock, Mail } from 'lucide-react';
 
 export async function loader({ request }: Route.LoaderArgs) {
   const userId = await getUserId(request);
@@ -43,64 +43,83 @@ export function meta({}: Route.MetaArgs) {
 
 export default function Login({ actionData }: Route.ComponentProps) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center px-4">
-      <motion.div
-        className="bg-white rounded-lg shadow-xl p-8 w-full max-w-md"
-        initial="hidden"
-        animate="visible"
-        variants={fadeInUp}
-      >
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Admin Login
-          </h1>
-          <p className="text-gray-600">
+    <div className="min-h-screen flex items-center justify-center bg-muted/50 px-4 py-12">
+      <div className="w-full max-w-md space-y-6">
+        <div className="flex flex-col items-center space-y-2 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground">
+            <Lock className="h-6 w-6" />
+          </div>
+          <h1 className="text-3xl font-bold tracking-tight">Admin Login</h1>
+          <p className="text-muted-foreground">
             Masuk ke panel administrasi UmrohKita
           </p>
         </div>
 
-        {actionData?.error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">
-            ❌ {actionData.error}
-          </div>
-        )}
+        <Card>
+          <CardHeader>
+            <CardTitle>Masuk ke Akun</CardTitle>
+            <CardDescription>
+              Masukkan email dan password Anda untuk melanjutkan
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {actionData?.error && (
+              <div className="mb-6 flex items-center gap-2 rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive">
+                <AlertCircle className="h-4 w-4" />
+                <span>{actionData.error}</span>
+              </div>
+            )}
 
-        <Form method="post" className="space-y-6">
-          <div>
-            <Label htmlFor="email">Email</Label>
-            <Input
-              type="email"
-              id="email"
-              name="email"
-              required
-              autoComplete="email"
-              className="mt-2"
-            />
-          </div>
+            <Form method="post" className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="email"
+                    id="email"
+                    name="email"
+                    required
+                    autoComplete="email"
+                    placeholder="nama@example.com"
+                    className="pl-9"
+                  />
+                </div>
+              </div>
 
-          <div>
-            <Label htmlFor="password">Password</Label>
-            <Input
-              type="password"
-              id="password"
-              name="password"
-              required
-              autoComplete="current-password"
-              className="mt-2"
-            />
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="password"
+                    id="password"
+                    name="password"
+                    required
+                    autoComplete="current-password"
+                    placeholder="••••••••"
+                    className="pl-9"
+                  />
+                </div>
+              </div>
 
-          <Button type="submit" className="w-full" size="lg">
-            Masuk
-          </Button>
-        </Form>
+              <Button type="submit" className="w-full" size="lg">
+                Masuk
+              </Button>
+            </Form>
 
-        <div className="mt-6 text-center">
-          <a href="/" className="text-blue-600 hover:text-blue-800">
-            ← Kembali ke Website
-          </a>
-        </div>
-      </motion.div>
+            <div className="mt-6 text-center">
+              <Link
+                to="/"
+                className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Kembali ke Website
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

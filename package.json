@@ -3,11 +3,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "react-router build",
+    "build": "prisma generate && react-router build",
     "dev": "react-router dev",
     "start": "react-router-serve ./build/server/index.js",
     "typecheck": "react-router typegen && tsc",
+    "postinstall": "prisma generate",
     "db:migrate": "prisma migrate dev",
+    "db:migrate:deploy": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio"
   },

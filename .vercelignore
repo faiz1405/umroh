@@ -1,0 +1,12 @@
+node_modules
+.env
+.env.*
+!.env.example
+.react-router
+generated
+*.log
+.DS_Store
+.vscode
+.cursor
+prisma/migrations
+
