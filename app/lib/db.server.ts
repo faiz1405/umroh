@@ -2,7 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { PrismaNeon } from '@prisma/adapter-neon';
 import { Pool } from '@neondatabase/serverless';
 
-const connectionString = process.env.DATABASE_URL || process.env.VITE_DB_URL;
+const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_PRISMA_URL;
 
 if (!connectionString) {
   console.error('❌ DATABASE_URL is missing from environment variables');
