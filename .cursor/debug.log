@@ -1,0 +1,3 @@
+{"location":"db.server.ts:11","message":"DB init start","data":{"hasDbUrl":true,"hasViteDbUrl":false,"connectionStringExists":true,"nodeEnv":"development"},"timestamp":1767766055760,"sessionId":"debug-session","runId":"post-fix","hypothesisId":"D"}
+{"location":"db.server.ts:25","message":"Before PrismaClient init with Neon adapter","data":{"usingAdapter":true},"timestamp":1767766055790,"sessionId":"debug-session","runId":"post-fix","hypothesisId":"C"}
+{"location":"db.server.ts:44","message":"PrismaClient init SUCCESS with Neon adapter","data":{"success":true},"timestamp":1767766055795,"sessionId":"debug-session","runId":"post-fix","hypothesisId":"C"}
