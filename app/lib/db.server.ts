@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
 
-// Ambil URL dari environment
+// Pastikan connection string ada
 const connectionString = process.env.DATABASE_URL || process.env.VITE_DB_URL;
 
 if (!connectionString) {
@@ -13,8 +13,13 @@ if (!connectionString) {
 export const db =
   globalForPrisma.prisma ||
   new PrismaClient({
-    // 👇 PENTING: Ini fitur baru Prisma 7 pengganti url di schema
-    datasourceUrl: connectionString, 
+    // 👇 PERBAIKAN: Gunakan 'datasources'
+    // Kunci 'db' harus sesuai dengan nama di schema.prisma (datasource db { ... })
+    datasources: {
+      db: {
+        url: connectionString,
+      },
+    },
     log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
   });
 
